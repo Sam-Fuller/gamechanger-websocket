@@ -9,22 +9,24 @@ export enum COLORS {
 }
 
 export interface Player {
-    name: string,
+    id: number,
+    player?: boolean,
+
     color: COLORS,
+    score: number,
 
     missedPings?: number,
     websocket?: ws.WebSocket
-
-    score: number,
-    total: number,
 }
 
 export enum MESSAGE_TYPES {
     UPDATE = "UPDATE",
     SET_POINTS = "SET_POINTS",
+    JOIN = "JOIN",
 }
 
 export interface Message {
     type: MESSAGE_TYPES,
+    id: number,
     players: Player[],
 }

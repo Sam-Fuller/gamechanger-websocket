@@ -1,8 +1,9 @@
-import ws from 'ws';
 import { MESSAGE_TYPES, Player } from './types';
+
 import dotenv from 'dotenv';
-import { connect } from './operations/connect';
+import { join } from './operations/join';
 import { updateAll } from './operations/update';
+import ws from 'ws';
 
 dotenv.config();
 
@@ -15,11 +16,11 @@ setInterval(() => {
 
         if (player.missedPings >= 10) {
             player.websocket?.terminate();
-            console.log(`Player ${player.name} terminated`);
+            updateAll(players);
 
         } if (player.missedPings >= 1000) {
             players.splice(players.indexOf(player), 1);
-            console.log(`Player ${player.name} removed`);
+            console.log(`Player ${player.id} removed`);
 
         } else {
             player.websocket?.ping();
@@ -28,19 +29,11 @@ setInterval(() => {
 }, 2000);
 
 websocket.on('connection', (socket, request) => {
-    let player: Player;
-    try {
-        player = connect(socket, players, request);
-    } catch (error) {
-        console.log("Error connecting to server")
-        socket.send("Error connecting to server")
-        socket.terminate();
-        return;
-    }
-    console.log(`Player ${player.name} connected`);
+    const player: Player = join(socket, players);
+    console.log(`Player ${player.id} joined`);
 
     socket.on(`pong`, () => (player.missedPings = 0));
-    socket.on(`close`, () => { });
+    socket.on(`close`, () => { updateAll(players); });
 
     socket.on(`message`, (message: string) => {
         try {
@@ -49,18 +42,27 @@ websocket.on('connection', (socket, request) => {
             switch (parsedMessage.type) {
                 case MESSAGE_TYPES.SET_POINTS:
                     parsedMessage.players.forEach((player: Player) => {
-                        const existingPlayer = players.find((existingPlayer) => existingPlayer.name === player.name);
+                        const existingPlayer = players.find((existingPlayer) => existingPlayer.id === player.id);
 
                         if (existingPlayer) {
                             existingPlayer.score = player.score;
-                            existingPlayer.total = player.total;
                         }
                     });
-                //fall through
+
+                    updateAll(players);
+                    break;
 
                 case MESSAGE_TYPES.UPDATE:
                     updateAll(players);
                     break;
+
+                case MESSAGE_TYPES.JOIN:
+                    if (player.player) break;
+
+                    player.player = true;
+                    updateAll(players);
+                    break;
+
             }
         } catch (error) {
             console.log("Error parsing message", error)
