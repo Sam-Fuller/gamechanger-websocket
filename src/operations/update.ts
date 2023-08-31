@@ -8,7 +8,7 @@ export const updateAll = (players: Player[]) => {
             players: players
                 .filter((player) => player.player)
                 .filter((player) => (player.missedPings || 0) < 10)
-                .map((player) => ({ id: player.id, color: player.color, score: player.score }))
+                .map((player) => ({ id: player.id, color: player.color, score: player.score, timeBuzzed: player.timeBuzzed }))
         }
 
         const stringMessage = JSON.stringify(message);

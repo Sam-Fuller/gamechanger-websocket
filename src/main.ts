@@ -38,6 +38,7 @@ websocket.on('connection', (socket, request) => {
     socket.on(`message`, (message: string) => {
         try {
             const parsedMessage = JSON.parse(message);
+            console.log(parsedMessage.type)
 
             switch (parsedMessage.type) {
                 case MESSAGE_TYPES.SET_POINTS:
@@ -46,24 +47,26 @@ websocket.on('connection', (socket, request) => {
 
                         if (existingPlayer) {
                             existingPlayer.score = player.score;
+
+                            if (!player.timeBuzzed || !existingPlayer.timeBuzzed || new Date(player.timeBuzzed) < new Date(existingPlayer.timeBuzzed)) {
+                                existingPlayer.timeBuzzed = player.timeBuzzed;
+                            }
                         }
                     });
-
-                    updateAll(players);
                     break;
 
                 case MESSAGE_TYPES.UPDATE:
-                    updateAll(players);
                     break;
 
                 case MESSAGE_TYPES.JOIN:
                     if (player.player) break;
 
                     player.player = true;
-                    updateAll(players);
                     break;
-
             }
+
+            updateAll(players);
+
         } catch (error) {
             console.log("Error parsing message", error)
             socket.send("Error parsing message")

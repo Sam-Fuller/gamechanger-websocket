@@ -14,6 +14,7 @@ export interface Player {
 
     color: COLORS,
     score: number,
+    timeBuzzed?: string,
 
     missedPings?: number,
     websocket?: ws.WebSocket
