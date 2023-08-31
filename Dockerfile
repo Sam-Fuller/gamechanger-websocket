@@ -20,4 +20,4 @@ RUN npm ci
 COPY --from=builder /usr/src/app/dist ./dist
 
 EXPOSE 80
-CMD [ "node", "dist/websocket/src/main.js" ]
+CMD [ "node", "./dist/websocket/src/main.js" ]
